@@ -40,16 +40,13 @@ public class UsersServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String action = request.getParameter("action");
 		if(action != null && action.toLowerCase().equals("all")) {
-			String allUsers = "";
-			List<Key<User>> userKeys = OfyService.ofy().load().type(User.class).keys().list();
-			for(Key<User> userKey : userKeys) {
-				allUsers += userKey.getName() + ", ";
-			}
-			
-			if(userKeys.size() > 0)
-				allUsers = allUsers.substring(0, allUsers.length() - 2);
-			
-			response.getWriter().print(allUsers);
+			String allUsersStringList = UserService.getAllAsString();
+			response.getWriter().print(allUsersStringList);
+			return;
+		} else if (action != null && action.toLowerCase().equals("all-json")) {
+			List<UserDto> allUsers = UserService.getAllUsersAsDtos();
+			String allUsersJson = this.objectMapper.writeValueAsString(allUsers);
+			response.getWriter().print(allUsersJson);
 			return;
 		}
 		

@@ -1,9 +1,13 @@
 package adjust.cordova.appengine.server.services;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.googlecode.objectify.Key;
 
 import adjust.cordova.appengine.server.OfyService;
 import adjust.cordova.appengine.server.entities.User;
+import adjust.cordova.appengine.server.entities.dto.UserDto;
 
 public class UserService {
 	
@@ -14,6 +18,33 @@ public class UserService {
 		
 		return OfyService.ofy().load().type(User.class)
 				.id(userName).now();
+	}
+	
+	public static String getAllAsString() {
+		String allUsers = "";
+		List<Key<User>> userKeys = OfyService.ofy().load().type(User.class).keys().list();
+		for(Key<User> userKey : userKeys) {
+			allUsers += userKey.getName() + ", ";
+		}
+		
+		if(userKeys.size() > 0)
+			allUsers = allUsers.substring(0, allUsers.length() - 2);
+		
+		return allUsers;
+	}
+	
+	public static List<User> getAll() {
+		List<User> allUsers = OfyService.ofy().load().type(User.class).list();
+		return allUsers;
+	}
+	
+	public static List<UserDto> getAllUsersAsDtos() {		
+		List<User> allUsers = getAll();
+		List<UserDto> allUsersDtos = new ArrayList<>(allUsers.size());
+		for(User user : allUsers) {
+			allUsersDtos.add(new UserDto(user));
+		}		
+		return allUsersDtos;
 	}
 
 	public static boolean exists(String userName) {
