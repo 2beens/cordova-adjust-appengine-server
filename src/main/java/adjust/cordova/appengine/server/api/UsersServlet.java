@@ -15,6 +15,7 @@ import com.googlecode.objectify.Key;
 import adjust.cordova.appengine.server.OfyService;
 import adjust.cordova.appengine.server.entities.User;
 import adjust.cordova.appengine.server.entities.dto.UserDto;
+import adjust.cordova.appengine.server.services.UserService;
 
 /**
  * Servlet implementation class UsersServlet
@@ -58,7 +59,7 @@ public class UsersServlet extends HttpServlet {
 			return;
 		}
 		
-		if(!userExists(userName))  {
+		if(!UserService.userExistsInDb(userName))  {
 			response.sendError(HttpServletResponse.SC_NOT_FOUND);
 			return;
 		}
@@ -73,13 +74,8 @@ public class UsersServlet extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String userName = request.getParameter("userName");
-		if(userName == null) {
+		if(UserService.exists(userName)) {
 			response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-			return;
-		}
-		
-		if(userExists(userName)) {
-			response.sendError(HttpServletResponse.SC_CONFLICT);
 			return;
 		}
 		
@@ -89,14 +85,4 @@ public class UsersServlet extends HttpServlet {
 		
 		response.getWriter().print("New User [" + userName + "] saved.");
 	}
-	
-	public static boolean userExists(String userName) {
-	    Key<User> key = Key.create(User.class, userName);
-	    User user = OfyService.ofy().load().key(key).now();
-	    if (user != null)
-	        return true;
-
-	    return false;
-	}
-
 }

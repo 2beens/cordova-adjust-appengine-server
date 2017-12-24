@@ -7,9 +7,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import adjust.cordova.appengine.server.OfyService;
 import adjust.cordova.appengine.server.entities.User;
 import adjust.cordova.appengine.server.entities.UserTask;
+import adjust.cordova.appengine.server.services.UserService;
+import adjust.cordova.appengine.server.services.UserTaskService;
 
 /**
  * Servlet implementation class UserTasksServlet
@@ -39,12 +40,7 @@ public class UserTasksServlet extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String userName = request.getParameter("userName");
-		if(userName == null) {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-			return;
-		}
-		
-		if(!UsersServlet.userExists(userName)) {
+		if(!UserService.exists(userName)) {
 			response.sendError(HttpServletResponse.SC_BAD_REQUEST);
 			return;
 		}
@@ -56,13 +52,25 @@ public class UserTasksServlet extends HttpServlet {
 		}
 		
 		UserTask newUserTask = new UserTask(userName, text);
+		UserTaskService.addNew(newUserTask);
 		
-		OfyService.ofy().save().entity(newUserTask).now();
-		
-		User user = OfyService.ofy().load().type(User.class).id(userName).now();
+		User user = UserService.get(userName);
 		user.addTask(newUserTask);
 		
 		response.getWriter().print("New task for user [" + userName + "] saved.");
+	}
+	
+	@Override
+	protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		String userName = req.getParameter("userName");
+		if(!UserService.exists(userName)) {
+			resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+			return;
+		}
+		
+		UserTaskService.removeAllUserTasks(userName);
+		
+		resp.getWriter().print("About to delete all tasks of [" + userName + "].");
 	}
 
 }

@@ -30,7 +30,12 @@ public class User {
 	
 	public void addTask(UserTask task) {
 		this.tasks.add(Ref.create(task));
-		OfyService.ofy().save().entity(this).now();
+		persistUser();
+	}
+	
+	public void clearAllTasks() {
+		this.tasks.clear();
+		persistUser();
 	}
 	
 	public List<UserTask> getTasks() {
@@ -39,6 +44,10 @@ public class User {
 			tasks.add(userTaskRef.get());
 		}
 		return tasks;
+	}
+	
+	private void persistUser() {
+		OfyService.ofy().save().entity(this).now();
 	}
 	
 	@Override
