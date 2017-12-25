@@ -7,8 +7,11 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import adjust.cordova.appengine.server.entities.User;
 import adjust.cordova.appengine.server.entities.UserTask;
+import adjust.cordova.appengine.server.entities.dto.ResponseMessage;
 import adjust.cordova.appengine.server.services.UserService;
 import adjust.cordova.appengine.server.services.UserTaskService;
 
@@ -18,6 +21,8 @@ import adjust.cordova.appengine.server.services.UserTaskService;
 @WebServlet("/tasks")
 public class UserTasksServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
+	
+	private ObjectMapper objectMapper = new ObjectMapper();
 
 	/**
 	 * @see HttpServlet#HttpServlet()
@@ -43,15 +48,19 @@ public class UserTasksServlet extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
+		ResponseMessage respMsg;
+		
 		String userName = request.getParameter("userName");
 		if (!UserService.exists(userName)) {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+			respMsg = new ResponseMessage(0, "UserName cannot be empty/null!");
+			response.getWriter().print(this.objectMapper.writeValueAsString(respMsg));
 			return;
 		}
 
 		String text = request.getParameter("text");
 		if (text == null) {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+			respMsg = new ResponseMessage(0, "Task text cannot be empty/null!");
+			response.getWriter().print(this.objectMapper.writeValueAsString(respMsg));
 			return;
 		}
 
@@ -61,7 +70,8 @@ public class UserTasksServlet extends HttpServlet {
 		User user = UserService.get(userName);
 		user.addTask(newUserTask);
 
-		response.getWriter().print("New task for user [" + userName + "] saved.");
+		respMsg = new ResponseMessage(1, "New task for user [" + userName + "] saved.");
+		response.getWriter().print(this.objectMapper.writeValueAsString(respMsg));
 	}
 
 	@Override
@@ -74,7 +84,8 @@ public class UserTasksServlet extends HttpServlet {
 
 		UserTaskService.removeAllUserTasks(userName);
 
-		resp.getWriter().print("About to delete all tasks of [" + userName + "].");
+		ResponseMessage respMsg = new ResponseMessage(1, "About to delete all tasks of [" + userName + "].");
+		resp.getWriter().print(this.objectMapper.writeValueAsString(respMsg));
 	}
 
 }

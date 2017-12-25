@@ -10,10 +10,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.googlecode.objectify.Key;
 
 import adjust.cordova.appengine.server.OfyService;
 import adjust.cordova.appengine.server.entities.User;
+import adjust.cordova.appengine.server.entities.dto.ResponseMessage;
 import adjust.cordova.appengine.server.entities.dto.UserDto;
 import adjust.cordova.appengine.server.services.UserService;
 
@@ -70,16 +70,20 @@ public class UsersServlet extends HttpServlet {
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		ResponseMessage respMsg;
 		String userName = request.getParameter("userName");
 		if(UserService.exists(userName)) {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+			respMsg = new ResponseMessage(0, "User already exists!");
+			response.getWriter().print(this.objectMapper.writeValueAsString(respMsg));
 			return;
 		}
 		
-		User newUser = new User(userName);
+		if(UserService.add(userName)) {
+			respMsg = new ResponseMessage(1, "New User [" + userName + "] saved.");
+		} else {
+			respMsg = new ResponseMessage(0, "Error! New User [" + userName + "] NOT saved!");
+		}
 		
-		OfyService.ofy().save().entity(newUser).now();
-		
-		response.getWriter().print("New User [" + userName + "] saved.");
+		response.getWriter().print(this.objectMapper.writeValueAsString(respMsg));
 	}
 }

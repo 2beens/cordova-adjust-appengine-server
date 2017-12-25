@@ -46,6 +46,16 @@ public class UserService {
 		}		
 		return allUsersDtos;
 	}
+	
+	public static boolean add(String userName) {
+		User newUser = new User(userName);		
+		Key<User> newUserKey = OfyService.ofy().save().entity(newUser).now();
+		
+		if(newUserKey != null)
+			return true;
+		
+		return false;
+	}
 
 	public static boolean exists(String userName) {
 		if(userName == null || userName.length() == 0) {
